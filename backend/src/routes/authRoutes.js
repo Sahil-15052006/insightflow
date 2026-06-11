@@ -1,35 +1,43 @@
 const express = require("express");
-const bcrypt = require("bcrypt");
-const User = require("../models/userModel");
-const jwt = require('jsonwebtoken')
-require("dotenv").config()
+const argon = require("argon2");
+const Users = require("../models/userModel");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 const router = express.Router();
 
 // register new user
-router.post("/register", async (req, res) => {
+router.post("/registerUser", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, surname, email, password } = req.body;
 
-    const emailExists = await User.findOne({email})
+    const emailExists = await Users.findOne({ email });
 
-    if (!email || !password) return res.status(400).json({ message: "Email and password required" });
+    if (!name || !surname || !email || !password)
+      return res.status(400).json({ message: "Required all fields" });
 
     if (emailExists) {
-        return res.status(400).json({ message: "Email already exists" });
+      return res.status(400).json({ message: "Email already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({
+    const hashedPassword = await argon.hash(password, {
+      memoryCost: 65536,
+      timeCost: 3,
+      parallelism: 4,
+    });
+
+    const user = await Users.insertOne({
       name,
+      surname,
       email,
       password: hashedPassword,
+      provider: "local",
+      isVerified: "false",
     });
-    await user.save();
+
+
     res.status(201).json({ message: "User created sucessfully" });
-
   } catch (error) {
-
     res.status(500).json({
       message: "Failed to create user",
       error: error.message,
@@ -38,91 +46,56 @@ router.post("/register", async (req, res) => {
 });
 
 // login user
-router.post('/login',async(req,res)=>{
-    try{
+router.post("/loginUser", async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-        const {email,password} = req.body
+    if (!email || !password)
+      return res.status(400).json({ message: "Email and password required" });
 
-        if (!email || !password) return res.status(400).json({ message: "Email and password required" });
+    const user = await Users.findOne({ email });
+    if (!user) return res.status(404).json({ message: "Email not found" });
 
-        const user = await User.findOne({email})
-        if (!user) return res.status(404).json({message:"Email not found"})
+    const isMatch = await argon.verify(user.password,password);
+    if (!isMatch) return res.status(400).json({ message: "Wrong password" });
 
-        const isMatch =  await bcrypt.compare(password,user.password)
-        if (!isMatch) return res.status(400).json({message:"Wrong password"})
-        
-        const token = jwt.sign(
-            {id:user._id},
-            process.env.JWT_SECRET,
-            {expiresIn:'7d'}
-        )
+    if (!user.isVerified) return res.status(400).json({message:"Please verify the email to login"})
 
-        res.cookie("token",token,{
-            httpOnly:true,
-            secure:false,
-            maxAge:7*24*60*60*1000
-        })
+    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
 
-        res.json({token})
+    const accessToken = jwt.sign({id:user._id},process.env.JWT_SECRET,{
+      expiresIn:"15m"
+    })
 
-        res.status(200).json({
-            message:'logged in successfully',
-        })
+    res.cookie("token", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
-    }catch(err){
+    res.json({
+      accessToken : accessToken,
+      refreshToken : refreshToken
+    });
 
-        res.status(500).json({
-            message:"Server Error",
-            error:err.message
-        })
-
-    }
-})
-
-// guest login 
-router.post('/guest',async(req,res)=>{
-
-    try{
-        const guestUser = new User({
-            name:`guest${Date.now()}${Math.floor(Math.random()*10000)}`,
-            role:"guest",
-            expiresAt:new Date(Date.now()+24*60*60*1000)
-        })
-
-        await guestUser.save()
-
-        const token = jwt.sign(
-            {id:User._id},
-            process.env.JWT_SECRET,
-            {expiresIn:'1d'}
-        )
-
-        res.cookie('token',token,{
-            httpOnly:true,
-            secure:true,
-            maxAge:24*60*60*1000
-        })
-
-        res.json({token})
-        
-        res.status(200).json({
-            message:'guest logged in successfully',
-        })
-
-    } catch(err) {
-
-        res.json({
-            message:"Error in guest login",
-            error:err.message
-        })
-    }
-})
-
-// logout User 
-router.post('/logout',(req,res)=>{
-    res.clearCookie('token')
-    res.json({message:'Logged out'})
-})
+    res.status(200).json({
+      message: "logged in successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Server Error",
+      error: err.message,
+    });
+  }
+});
 
 
-module.exports=router
+// logout User
+router.post("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.json({ message: "Logged out" });
+});
+
+module.exports = router;

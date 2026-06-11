@@ -7,28 +7,35 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
 
+  surname :{
+    type:String,
+    trim : true,
+  },
+
   email: {
     type: String,
     unique: true,
-    sparse: true, 
+    sparse: true,
     lowercase: true,
   },
 
   password: {
-    type: String, 
-  },
-
-  role: {
     type: String,
-    enum: ['user', 'guest'],
-    default: 'user'
   },
 
-  expiresAt: {
-    type: Date,
-    expires: 0,
+  provider: {
+    type : String,
+    enum :["local","gAuth"],
   },
 
-}, { timestamps: true });
+  isVerified : {
+    type: Boolean,
+    default:false
+  },
 
-module.exports = mongoose.model('User', userSchema);
+},
+{
+  timestamps: true
+});
+
+module.exports = mongoose.model('Users', userSchema);

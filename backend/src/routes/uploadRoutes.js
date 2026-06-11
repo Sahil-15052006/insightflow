@@ -5,11 +5,11 @@ const csv = require("csv-parser");
 const xlsx = require("xlsx");
 const fs = require("fs");
 
-const DataCleaner = require('../utils/DataCleaner');
-const SchemaDetector = require('../utils/SchemaDetector');
-const DataTypeConverter = require('../utils/DataTypeConverter');
-const DataValidator = require('../utils/DataValidater');
-const  generateInsights  = require("../utils/InsightGenerator");
+const DataCleaner = require('../utils/dataPipeline/DataCleaner');
+const SchemaDetector = require('../utils/dataPipeline/SchemaDetector');
+const DataTypeConverter = require('../utils/dataPipeline/DataTypeConverter');
+const DataValidator = require('../utils/dataPipeline/DataValidater');
+const  generateInsights  = require("../utils/dataPipeline/InsightGenerator");
 
 const storage = multer.diskStorage({
   destination: "uploads/",
