@@ -2,10 +2,13 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
 
+  verificationId:String,
+
   name: {
     type: String,
     trim: true,
   },
+
 
   surname :{
     type:String,
