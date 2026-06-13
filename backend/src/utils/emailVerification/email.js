@@ -26,7 +26,8 @@ const sendOTP = async(email,verificationId) =>{
     // console.log(newEmail)
 
     const resend = new Resend(process.env.RESEND_API)
-    console.log(resend)
+    // console.log(resend)
+    
     const {data,error} = await resend.emails.send({
       from:'Insightflow <otp@sahilsawant.tech>',
       to: email,
@@ -39,6 +40,7 @@ const sendOTP = async(email,verificationId) =>{
       console.log(error)
     }
 
+    return true
   } catch(err){
     return err
   }
