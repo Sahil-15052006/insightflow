@@ -1,42 +1,53 @@
-const express = require("express");
 const argon = require("argon2");
 const Users = require("../models/userModel");
-const crypto = require("crypto");
 const { sendOTP, verifyOTP } = require("../utils/emailVerification/email");
-const { setHeapSnapshotNearHeapLimit } = require("v8");
+
 require("dotenv").config();
 
 const verifyUserOTP = async (req, res) => {
   try {
     const { verificationId, otp } = req.body;
+
     const verificationStatus = await verifyOTP(verificationId, otp);
-    res.status(200).json({
-      success: verificationStatus,
-    });
+
+    return res.status(verificationStatus.success ? 200 : 400).json(
+      verificationStatus
+    );
   } catch (err) {
-    res.json({
-      err: err.message,
+    return res.status(500).json({
+      success: false,
+      message: err.message,
     });
   }
 };
 
 const sendUserOTP = async (req, res) => {
   try {
-
     const { email } = req.body;
-    const user = await Users.findOne({ email: email });
-    if (!user) return res.json({ message: "Email not resgistered" });
-    const verificationId = user.verificationId;
-    const sentOTP = await sendOTP(email, verificationId);
-    if (sentOTP){
-      return res.status(200).json({
-        success: true,
-        verificationId: verificationId,
-        message: "OTP sent on email",
+
+    const user = await Users.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Email not registered",
       });
     }
+
+    const verificationId = user._id.toString();
+    const sentOTP = await sendOTP(email, verificationId);
+
+    if (!sentOTP.success) {
+      return res.status(400).json(sentOTP);
+    }
+
+    return res.status(200).json({
+      success: true,
+      verificationId,
+      message: "OTP sent on email",
+    });
   } catch (err) {
-    res.json({
+    return res.status(500).json({
+      success: false,
       message: err.message,
     });
   }
@@ -45,27 +56,32 @@ const sendUserOTP = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { otp, verificationId, newPassword } = req.body;
-    const isOTPvalid = await verifyOTP(verificationId,otp);
-    if (isOTPvalid) {
-      const hashedPassword = await argon.hash(newPassword, {
-        memoryCost: 60000,
-        timeCost: 3,
-        parallelism: 4,
-      });
-      const user = await Users.findOneAndUpdate(
-        { verificationId: verificationId },
-        { password: hashedPassword },
-        {
-          returnDocument:'after'
-        }
-      );
-      res.status(200).json({
-        success: true,
-        message: "Password changed sucessfully",
-      });
+
+    const otpStatus = await verifyOTP(verificationId, otp);
+
+    if (!otpStatus.success) {
+      return res.status(400).json(otpStatus);
     }
+
+    const hashedPassword = await argon.hash(newPassword, {
+      memoryCost: 60000,
+      timeCost: 3,
+      parallelism: 4,
+    });
+
+    await Users.findOneAndUpdate(
+      { _id: verificationId },
+      { password: hashedPassword },
+      { returnDocument: "after" }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
   } catch (err) {
-    res.json({
+    return res.status(500).json({
+      success: false,
       message: err.message,
     });
   }

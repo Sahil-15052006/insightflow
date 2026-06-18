@@ -1,17 +1,58 @@
-const jwt = require('jsonwebtoken')
-require("dotenv").config()
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-module.exports=function(req,res,next){
-    let token = req.cookies.token
-    if(!token && req.header('Authorization')){
-        token = req.header('Authorization').split(" ")[1]
+const verifyAccessToken = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Token missing",
+      });
     }
-    if(!token) return res.status(401).json({message:'Token not found'})
-    try {
-        const verified = jwt.verify(token,process.env.JWT_SECRET)
-        req.user = verified
-        next()
-    } catch(err) {
-        res.status(401).json({message:"Invalid token"})
+
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token",
+    });
+  }
+};
+
+const verifyRefreshToken = (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.token;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token missing",
+      });
     }
-}
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET
+    );
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid refresh token",
+    });
+  }
+};
+
+module.exports = {
+  verifyAccessToken,
+  verifyRefreshToken,
+};
