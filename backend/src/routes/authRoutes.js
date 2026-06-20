@@ -1,7 +1,8 @@
 const express = require("express");
 const { registerUser, loginUser, logoutUser } = require("../controllers/authControllers");
 const { verifyUserOTP, sendUserOTP, resetPassword } = require("../controllers/otpControllers");
-const { verifyRefreshToken } = require("../middleware/authMiddleware")
+const { verifyRefreshToken } = require("../middleware/authMiddleware");
+const { googleAuth } = require('../controllers/gauthController')
 
 require("dotenv").config();
 
@@ -10,6 +11,7 @@ const router = express.Router();
 router.post("/registerUser",registerUser);
 router.post("/loginUser", loginUser);
 router.post("/logout", logoutUser);
+router.post("/googleAuth",googleAuth)
 
 router.patch("/verifyUserOTP", verifyUserOTP);
 router.post("/sendUserOTP",sendUserOTP)

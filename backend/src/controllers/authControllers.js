@@ -95,6 +95,13 @@ const loginUser = async (req, res) => {
       });
     }
 
+    if (user.provider==="google"){
+      return res.json({
+        success:false,
+        message:"Please login with google"
+      })
+    }
+
     const isMatch = await argon.verify(user.password, password);
 
     if (!isMatch) {
@@ -119,6 +126,7 @@ const loginUser = async (req, res) => {
       });
     }
 
+
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.JWT_REFRESH_SECRET,
@@ -141,8 +149,8 @@ const loginUser = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      accessToken,
-      refreshToken,
+      accessToken:accessToken,
+      refreshToken:refreshToken,
     });
   } catch (err) {
     return res.status(500).json({

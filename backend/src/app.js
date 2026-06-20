@@ -7,7 +7,7 @@ const authMiddleware = require('./middleware/authMiddleware')
 const uploadRoutes = require('./routes/uploadRoutes')
 const analyzeRoutes = require('./routes/analyzeRoutes')
 const User = require('./models/userModel')
-const datasetRoutes = require("./routes/datasetRoutes");
+// const datasetRoutes = require("./routes/datasetRoutes");
 
 const app=express()
 
@@ -21,26 +21,8 @@ app.use(cors({
 }))
 
 app.use('/auth',authRoutes)
-app.use('/uploadFile',uploadRoutes)
-app.use('/analyzeData',analyzeRoutes)
-app.use("/api/datasets", datasetRoutes);
-
-app.get('/userInfo',authMiddleware,async(req,res)=>{
-  try{
-    const user = await User.findById(req.user.id).select("-password")
-    res.json({user})
-  }catch(err){
-    res.json({
-      message:"Failed to get user data",
-    })
-  }
-})
-
-app.get("/auth/verify", authMiddleware, (req, res) => {
-  res.json({
-    message: "Token is valid",
-    user: req.user,
-  });
-});
+// app.use('/uploadFile',uploadRoutes)
+// app.use('/analyzeData',analyzeRoutes)
+// app.use("/api/datasets", datasetRoutes);
 
 module.exports=app

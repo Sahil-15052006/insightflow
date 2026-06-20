@@ -2,8 +2,6 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
 
-  verificationId:String,
-
   name: {
     type: String,
     trim: true,
@@ -28,12 +26,16 @@ const userSchema = new mongoose.Schema({
 
   provider: {
     type : String,
-    enum :["local","gAuth"],
+    enum :["local","google"],
   },
 
   isVerified : {
     type: Boolean,
     default:false
+  },
+
+  googleId : {
+    type:String
   },
 
 },
