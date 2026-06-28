@@ -45,15 +45,13 @@ const registerUser = async (req, res) => {
 
     const sentOTP = await sendOTP(email, verificationId);
 
-    if (!sentOTP.success) {
-      return res.status(400).json(sentOTP);
-    }
-
     return res.status(201).json({
       success: true,
-      verificationId,
-      message: "User created successfully",
+      verificationId:verificationId,
+      message1: "User created successfully",
+      message2:"OTP sent to the registerd email"
     });
+
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -139,19 +137,29 @@ const loginUser = async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    res.cookie("token", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Logged in successfully",
-      accessToken:accessToken,
-      refreshToken:refreshToken,
-    });
+    res
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 15 * 60 * 1000,
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({
+        success: true,
+        message: "Login successful",
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+      })
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -161,7 +169,7 @@ const loginUser = async (req, res) => {
 };
 
 const logoutUser = (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("accessToken").clearCookie("refreshToken");
 
   return res.status(200).json({
     success: true,

@@ -21,12 +21,11 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.1",
     "multer": "^2.1.1",
+    "node-cron": "^4.5.0",
     "orcs": "^0.0.1-preview.2",
     "redis": "^6.0.0",
+    "redis-server": "^1.2.2",
     "resend": "^6.12.4",
     "xlsx": "^0.18.5"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
   }
 }

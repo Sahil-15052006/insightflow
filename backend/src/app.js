@@ -7,7 +7,6 @@ const authMiddleware = require('./middleware/authMiddleware')
 const uploadRoutes = require('./routes/uploadRoutes')
 const analyzeRoutes = require('./routes/analyzeRoutes')
 const User = require('./models/userModel')
-// const datasetRoutes = require("./routes/datasetRoutes");
 
 const app=express()
 
@@ -16,13 +15,10 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.json())
 app.use(cookieParse())
 app.use(cors({
-    origin:"*",
-    Credential:true
+    origin:"https://supreme-telegram-pj4xpj647x54fr5gg-3000.app.github.dev",
+    credentials:true
 }))
 
 app.use('/auth',authRoutes)
-// app.use('/uploadFile',uploadRoutes)
-// app.use('/analyzeData',analyzeRoutes)
-// app.use("/api/datasets", datasetRoutes);
 
 module.exports=app

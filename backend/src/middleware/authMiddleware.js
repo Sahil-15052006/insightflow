@@ -3,18 +3,16 @@ require("dotenv").config();
 
 const verifyAccessToken = (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const accessToken = req.cookies.accessToken;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!accessToken) {
       return res.status(401).json({
         success: false,
-        message: "Token missing",
+        message: "Access token missing",
       });
     }
 
-    const token = authHeader.split(" ")[1];
-
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
 
     req.user = decoded;
     next();
@@ -28,7 +26,7 @@ const verifyAccessToken = (req, res, next) => {
 
 const verifyRefreshToken = (req, res, next) => {
   try {
-    const refreshToken = req.cookies.token;
+    const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
       return res.status(401).json({
