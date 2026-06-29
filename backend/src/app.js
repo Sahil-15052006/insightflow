@@ -15,7 +15,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.json())
 app.use(cookieParse())
 app.use(cors({
-    origin:"https://supreme-telegram-pj4xpj647x54fr5gg-3000.app.github.dev",
+    origin:"*",
     credentials:true
 }))
 
