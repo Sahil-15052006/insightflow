@@ -9,26 +9,38 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useAuthStore } from "@/app/store/authStore"
-import { useState } from "react"
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
 
-  const signupUser = useAuthStore((state)=>state.signupUser)
-  const [name,setName]=useState("")
-  const [surname,setSurname]=useState("")
-  const [email,setEmail]=useState("")
-  const [password,setPassword]=useState("")
-  const [confirmPassword,setConfirmPassword]=useState("")
+  const signupUser = useAuthStore((state) => state.signupUser);
+  const setEmail  = useAuthStore((state)=>state.setEmail)
 
-  const submitButton = async()=>{
-    await signupUser(name,surname, email,password,confirmPassword)
-  }
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    await signupUser({
+      name: data.name as string,
+      surname: data.surname as string,
+      email: data.email as string,
+      password: data.password as string,
+      confirmPassword: data.confirmPassword as string,
+    });
+
+    setEmail(data.email as string)
+    
+  };
+
 
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
+    <form
+    onSubmit={handleSubmit}
+    className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center text-center">
           <h1 className="text-2xl font-bold">Create your account</h1>
@@ -38,8 +50,8 @@ export function SignupForm({
           <Field>
             <FieldLabel htmlFor="name">Name</FieldLabel>
             <Input
-              onChange={(event)=>setName(event.target.value)}
               id="name"
+              name="name"
               type="text"
               placeholder="John"
               required
@@ -49,8 +61,8 @@ export function SignupForm({
           <Field>
             <FieldLabel htmlFor="surname">Surname</FieldLabel>
             <Input
-              onChange={(event)=>setSurname(event.target.value)}
               id="surname"
+              name="surname"
               type="text"
               placeholder="Doe"
               required
@@ -62,8 +74,8 @@ export function SignupForm({
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
-            onChange={(event)=>setEmail(event.target.value)}
             id="email"
+            name="email"
             type="email"
             placeholder="m@example.com"
             required
@@ -74,18 +86,18 @@ export function SignupForm({
         <Field>
           <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input
-            onChange={(event)=>setPassword(event.target.value)}
             id="password"
+            name="password"
             type="password"
             required
             className="bg-background"
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
+          <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
           <Input
-            onChange={(event)=>setConfirmPassword(event.target.value)}
-            id="confirm-password"
+            id="confirmPassword"
+            name="confirmPassword"
             type="password"
             required
             className="bg-background"
@@ -93,7 +105,6 @@ export function SignupForm({
         </Field>
         <Field>
           <Button
-            onClick={submitButton}
             type="submit">Create Account</Button>
         </Field>
         <FieldSeparator>Or continue with</FieldSeparator>

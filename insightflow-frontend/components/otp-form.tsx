@@ -1,6 +1,6 @@
 "use client"
 
-import { RefreshCwIcon } from "lucide-react"
+import { XIcon, RefreshCwIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -22,16 +22,34 @@ import {
 } from "@/components/ui/input-otp"
 
 import { useAuthStore } from "@/app/store/authStore"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export function InputOTPForm() {
-  const setOtpOverlayState = useAuthStore((state)=>state.setOtpOverlayState)
+
+  const verifyOTP = useAuthStore((s)=>s.verifyOTP)
+  const email = useAuthStore((s)=>s.email)
+  const [otp,setOTP] = useState("")
+  const resendOTP = useAuthStore((s) => s.resendOTP);
+  const setOtpOverlay = useAuthStore((s)=>s.setOtpOverlayState)
+
+  const router=useRouter()
+
+  const handleOTP = async () => {
+    await verifyOTP(otp);
+    router.replace('/login')
+  };
+
   return (
     <Card className="mx-auto max-w-md">
+      <div className="w-full h-fit flex justify-end items-end">
+        <XIcon className="me-2" onClick={()=>setOtpOverlay(false)}/>
+      </div>
       <CardHeader>
         <CardTitle>Verify your Email</CardTitle>
         <CardDescription>
           Enter the verification code we sent to your email address:{" "}
-          <span className="font-medium">m@example.com</span>.
+          <span className="font-medium">{email}</span>.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -40,12 +58,16 @@ export function InputOTPForm() {
             <FieldLabel htmlFor="otp-verification">
               Verification code
             </FieldLabel>
-            <Button variant="outline" size="xs">
+            <Button
+              onClick={()=>resendOTP(email)}
+              variant="outline" size="xs">
               <RefreshCwIcon />
               Resend Code
             </Button>
           </div>
-          <InputOTP maxLength={6} id="otp-verification" required>
+          <InputOTP
+            onChange={setOTP}
+            maxLength={6} id="otp-verification" required>
             <InputOTPGroup className="*:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-12 *:data-[slot=input-otp-slot]:text-xl">
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
@@ -60,9 +82,7 @@ export function InputOTPForm() {
       <CardFooter>
         <Field>
           <Button
-            onClick={
-              ()=>setOtpOverlayState(false)
-            }
+            onClick={handleOTP}
             type="submit"
             className="w-full">
             Verify

@@ -1,3 +1,4 @@
+"use client"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -7,13 +8,31 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { useAuthStore } from "@/app/store/authStore"
+import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+
+  const setResetPassOverlay = useAuthStore((s)=>s.setResetPassOverlay)
+  const loginUser = useAuthStore((s)=>s.loginUser)
+  const [email,setEmail] = useState("")
+  const [password,setPassword] = useState("")
+  const router = useRouter()
+
+  const handleSubmit=async(e:React.SyntheticEvent<HTMLFormElement>)=>{
+    e.preventDefault()
+    const success= await loginUser(email,password)
+    if(success) {
+      router.replace('/dashboard')
+    }
+  }
+
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
+    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center ">
           <h1 className="text-2xl font-bold">Login to your account</h1>
@@ -24,7 +43,7 @@ export function LoginForm({
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
-            id="email"
+            onChange={(e)=>setEmail(e.target.value)}
             type="email"
             placeholder="m@example.com"
             required
@@ -35,14 +54,14 @@ export function LoginForm({
           <div className="flex items-center">
             <FieldLabel htmlFor="password">Password</FieldLabel>
             <a
-              href="#"
+              onClick={()=>setResetPassOverlay(true)}
               className="ml-auto text-sm underline-offset-4 hover:underline"
             >
               Forgot your password?
             </a>
           </div>
           <Input
-            id="password"
+            onChange={(e)=>setPassword(e.target.value)}
             type="password"
             required
             className="bg-background"

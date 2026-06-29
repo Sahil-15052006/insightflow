@@ -1,4 +1,4 @@
-"use client"
+
 import {
   Field,
   FieldDescription,
@@ -9,10 +9,13 @@ import { LoginForm } from "@/components/login-form"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import OtpOverlay from "@/components/OtpOverlay"
+
 export default function LoginPage() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2 bg-[radial-gradient(circle,rgba(255,255,255,0.10)_1px,transparent_1px)] bg-size-[7px_7px] bg-black dark text-white">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
+      <div className="relative flex flex-col gap-4 p-6 md:p-10">
+      <OtpOverlay/>
         <div className="flex justify-center gap-2 md:justify-start">
           <Link href="" className="flex items-center gap-2 font-semibold">
             <div className="flex size-10 items-center justify-center rounded-md  text-primary-foreground">
