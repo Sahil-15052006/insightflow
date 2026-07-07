@@ -1,1 +1,0 @@
-node_modules/.bin/cross-env/dist/bin/cross-env.js
