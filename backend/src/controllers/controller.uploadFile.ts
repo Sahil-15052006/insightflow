@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
+import {uploadfile} from "../services/services.dataset.js";
+import { DatasetFileType,DatasetStatus } from "../../generated/prisma/enums.js";
 
-export const uploadFile = (req: Request, res: Response) => {
+export const uploadFile = async(req: Request, res: Response) => {
   const file = req.file;
 
   if (!file) {
@@ -11,14 +13,12 @@ export const uploadFile = (req: Request, res: Response) => {
 
   console.log(file);
 
+  const fileType:DatasetFileType = file.mimetype=="text/csv" ? DatasetFileType.CSV : DatasetFileType.XLSX;
+
+  const uploadedFile = await uploadfile(file.filename,file.originalname,fileType);
+
   return res.status(201).json({
+    fileId:uploadedFile,
     message: "File uploaded successfully",
-    file: {
-      filename: file.filename,
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-      path: file.path,
-    },
   });
 };

@@ -6,5 +6,5 @@ dotenv.config();
 const PORT = Number(process.env.PORT) || 5000;
 
 app.listen(PORT,"0.0.0.0",()=>{
-    console.log("Insightflow server running.")
+    console.log(`Insightflow server running on PORT ${PORT}.`)
 })
